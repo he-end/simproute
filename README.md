@@ -27,14 +27,23 @@ func main() {
         r.AutoCorelation = false
         r.RecoverOnPanic = false
 
-        // using single route / or simple Route without Prefix Grouping
-	r.Get("/api", func(w http.ResponseWriter, r *http.Request) {
+        // [*] using single route / or simple Route without Prefix Grouping
+  
+        // ==>> GET /api
+        r.Get("/api", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"oke":true}`))
-	})
+	}) 
+        // ==>> GET /api/user1/1
+        r.GET("/api/{name_user}/:id", PostHandler)  
 
-        // using grouping params/path
+        // [*] using grouping params/path
+  
+  
         r.Group("/api/v2/users", gr func(*Router){
+                // ==>> GET /api/v2/users
                 gr.Get("/", GetUserHandler)
+                // ==>> PUT /api/v2/users/products/12
+                gr.PUT("/products/:id", PostPaymentHandler)
         })
   
         // we also create logger in the package, as default logger will run as 
