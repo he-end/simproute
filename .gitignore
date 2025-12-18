@@ -1,0 +1,243 @@
+# .gitignore generik untuk berbagai proyek
+# Gunakan sesuai kebutuhan — aktifkan/ubah bagian bahasa/IDE yang relevan
+
+logs/
+
+# === Sistem operasi ===
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+~$*
+.nfs*
+
+# === Node.js / JavaScript ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnp/
+.pnp.js
+dist/
+build/
+out/
+lib/
+coverage/
+*.log
+.env
+.env.local
+.env.*.local
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.python-version
+venv/
+ENV/
+env/
+.venv/
+venv.bak/
+pip-wheel-metadata/
+dist/
+build/
+*.egg-info/
+coverage/
+htmlcov/
+.mypy_cache/
+.pyre/
+celerybeat-schedule
+instance/
+.webassets-cache
+
+# === Java / JVM ===
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+.classpath
+.project
+.settings/
+target/
+bin/
+out/
+build/
+*.iml
+.gradle/
+gradle-app.setting
+
+# === Kotlin ===
+*.kts
+/.gradle/
+
+# === Go ===
+/vendor/
+/bin/
+/obj/
+/*.exe
+*.test
+*.out
+coverage.out
+
+# === Rust ===
+/target/
+/**/*.rs.bk
+Cargo.lock
+
+# === PHP / Composer ===
+vendor/
+composer.lock
+.idea/
+*.log
+*.sql
+*.sqlite
+
+# === Ruby / Rails ===
+*.gem
+*.rbc
+.bundle/
+vendor/bundle
+log/
+tmp/
+.byebug_history
+coverage/
+*.pid
+
+# === JavaScript frameworks / Packaging ===
+dist/
+build/
+.cache/
+.next/
+.nuxt/
+.astro/
+.svelte-kit/
+public/build/
+parcel-cache/
+
+# === .NET ===
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.dotsettings
+.vs/
+*.nupkg
+
+# === Databases / Local files ===
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.sql
+*.bak
+
+# === Containers / Orchestration / Infrastructure ===
+docker-compose.override.yml
+docker-compose.*.yml
+.env.*.local
+*.env
+docker-compose*.override.yml
+docker-compose*.local.yml
+Dockerfile.*.local
+.docker/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+crash.log
+override.tf
+override.tf.json
+*.tfvars
+terraform.tfvars
+
+# Kubernetes
+.kube/
+kubeconfig
+*.kubeconfig
+
+# === IDEs / Editors ===
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# JetBrains (IntelliJ, PyCharm, WebStorm, etc.)
+.idea/
+*.iml
+*.iws
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Eclipse
+.metadata/
+*.launch
+.settings/
+
+# Emacs / Vim
+*~
+# Emacs
+*.elc
+# Vim
+*.swp
+*.swo
+*.swn
+
+# Visual Studio
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# === CI / Build servers ===
+*.bak
+*.tmp
+.cache/
+.sccache/
+.build/
+dist/
+gh-pages/
+
+# === Secrets / Keys ===
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets.yml
+credentials.yml.enc
+*.env
+.env.*
+
+# === Miscellaneous ===
+coverage/
+reports/
+report.xml
+*.orig
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Allow custom includes by negation below if needed:
+# !/path/to/keep
+
+# End of file
