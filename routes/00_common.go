@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	logger "github.com/he-end/simproute/route_logger"
+	"github.com/he-end/simproute/routes/response"
 )
 
 type HandlerFunc http.HandlerFunc
@@ -43,7 +44,10 @@ type Router struct {
 //	RecoverOnPanic = default(true)
 func New() *Router {
 	logger.InitLogger("dev", "debug")
-	compilePattern("/api/:id/{yous}")
+	if resp := response.NewWithGlobalLogger(); resp != nil {
+		resp.Dev = true
+	}
+
 	return &Router{
 		Routes: make(map[string]map[string]http.Handler),
 		DynamicRoutes: make([]struct {
