@@ -36,7 +36,7 @@ type Meta struct {
 // ResponseHandler handles API responses
 type ResponseHandler struct {
 	logger *zap.Logger
-	dev    bool
+	Dev    bool
 }
 
 // NewWithGlobalLogger creates a new ResponseHandler using the global logger
@@ -44,7 +44,7 @@ func NewWithGlobalLogger() *ResponseHandler {
 	dev := os.Getenv("ENV") == "development" || os.Getenv("ENV") == "dev"
 	return &ResponseHandler{
 		logger: logger.GetLogger(),
-		dev:    dev,
+		Dev:    dev,
 	}
 }
 
@@ -178,7 +178,7 @@ func (rh *ResponseHandler) Error(w http.ResponseWriter, message string, errCode 
 	}
 
 	// In production, don't expose sensitive error details
-	if !rh.dev && httpStatus >= 500 {
+	if !rh.Dev && httpStatus >= 500 {
 		response.Message = "Internal server error"
 		response.Error.Details = "An unexpected error occurred"
 	}
