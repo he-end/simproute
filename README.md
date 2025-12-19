@@ -23,7 +23,7 @@ func main() {
         //
         // AutoCorelation bool
         // RecoverOnPanic bool
-        // as default is 'true', but you can change as 'false'
+        // by default is 'true', but you can change as 'false'
         r.AutoCorelation = false
         r.RecoverOnPanic = false
 
@@ -47,8 +47,8 @@ func main() {
         })
   
         // we also create logger in the package, as default logger will run as 
-        // logger.InitLogger("dev", "debug")
-        // in the engine, but you can change the option with "prod"/"production",
+        // logger.InitLogger("dev", "debug") in the engine,
+        // but you can change the option with "prod"/"production",
         // and level as "debug", "info", "warn", "error", "fatal", "panic" for minimal to getting Logs.
         //
         // Note the order, InitLogger() is executed simultaneously with Router() registration.
@@ -112,7 +112,6 @@ net/http.(*conn).serve
 	/usr/lib/go-1.22/src/net/http/server.go:2044
 2025-12-19T04:13:54.156+0700	INFO	routes/serv_http.go:62	http_request	{"method": "GET", "path": "/api", "status": 500, "ip": "[::1]:50070", "duration": "275.525µs", "request_id": "2b00362d-3950-4424-a232-75ef7d3b9c29"}
 ```
-
 
 ## 2.2 The Printer Logger on 'Prod' Mode
 
