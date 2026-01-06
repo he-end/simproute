@@ -2,7 +2,7 @@
 # Gunakan sesuai kebutuhan — aktifkan/ubah bagian bahasa/IDE yang relevan
 
 logs/
-
+test/
 # === Sistem operasi ===
 # macOS
 .DS_Store
