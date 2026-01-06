@@ -3,7 +3,6 @@ package response
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 	"time"
 
 	logger "github.com/he-end/simproute/route_logger"
@@ -41,10 +40,11 @@ type ResponseHandler struct {
 
 // NewWithGlobalLogger creates a new ResponseHandler using the global logger
 func NewWithGlobalLogger() *ResponseHandler {
-	dev := os.Getenv("ENV") == "development" || os.Getenv("ENV") == "dev"
+	// try to get environment
+	onDev := false
 	return &ResponseHandler{
 		logger: logger.GetLogger(),
-		Dev:    dev,
+		Dev:    onDev,
 	}
 }
 
