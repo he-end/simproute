@@ -7,8 +7,8 @@ import (
 )
 
 func (cl *ConcurrenctLimit) PerHandlerMwCCLimit(capacity int64, next http.HandlerFunc) routes.HandlerFunc {
+	limitReq := make(chan struct{}, capacity)
 	return func(w http.ResponseWriter, r *http.Request) {
-		limitReq := make(chan struct{}, capacity)
 		select {
 		case limitReq <- struct{}{}:
 			defer func() { <-limitReq }()
