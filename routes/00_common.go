@@ -71,33 +71,37 @@ func compilePattern(pattern string) routePattern {
 
 	syntaxParam := `([^/]+)`
 	// colon param handle :param
-	colonRegex := regexp.MustCompile(`(:[a-zA-Z0-9_][a-zA-Z0-9]*)`)
+	colonRegex := regexp.MustCompile(`:([a-zA-Z_][a-zA-Z0-9]*)`)
 	colonMatch := colonRegex.FindAllStringSubmatch(pattern, -1)
 	for _, match := range colonMatch {
 		param := match[1]
-		if param != "" {
-			paramNames = append(paramNames, param)
-		}
+		// if param != "" {
+		// 	paramNames = append(paramNames, param)
+		// }
+		paramNames = append(paramNames, param)
 		regexPattern = strings.ReplaceAll(regexPattern, match[0], syntaxParam)
 	}
 
 	// brace param handle {param}
-	braceRegex := regexp.MustCompile(`\{([a-zA-Z0-9_][a-zA-Z0-9]*)\}`)
+	braceRegex := regexp.MustCompile(`\{([a-zA-Z][a-zA-Z0-9]*)\}`)
 	barceMatch := braceRegex.FindAllStringSubmatch(pattern, -1)
 	for _, match := range barceMatch {
 		param := match[1]
-		if param != "" {
-			paramNames = append(paramNames, param)
-		}
+		// if param != "" {
+		// 		paramNames = append(paramNames, param)
+		// }
+		paramNames = append(paramNames, param)
 		regexPattern = strings.ReplaceAll(regexPattern, match[0], syntaxParam)
 	}
 
 	regexPattern = regexp.QuoteMeta(regexPattern)
 	regexPattern = strings.ReplaceAll(regexPattern, `\(\[\^/\]\+\)`, syntaxParam)
+	regexPattern = "^" + regexPattern + "$"
+
 	compileRegex := regexp.MustCompile(regexPattern)
 
 	return routePattern{
-		pattern:    regexPattern,
+		pattern:    pattern,
 		regex:      compileRegex,
 		paramNames: paramNames,
 	}
