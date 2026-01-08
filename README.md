@@ -1,3 +1,21 @@
+SimpRoute is a lightweight HTTP routing framework for Go (Golang), designed with a minimal code philosophy and ease of use (EZ to use) in mind.
+
+Built for developers who need a fast routing solution without complex configurations. Despite being minimalist, SimpRoute comes packed with essential features ready for production environments.
+
+Key Features:
+
+🚀 Easy & Minimalist: Intuitive API with very low boilerplate code.
+
+🗂️ Route Grouping: Organize your code cleanly with path grouping (e.g., /api/v1/...).
+
+📝 Built-in Logger: Integrated logging system (supports JSON & Text formats) with dev and prod modes.
+
+🛡️ Panic Recovery: Automatically handles panics to keep your server stable.
+
+🔍 Auto Correlation: Easy request tracking with automatic Request IDs.
+
+🛠️ Standard Compatible: Fully compatible with Go's standard net/http.
+
 # 1. Example
 
 ## 1.1 Simple Use
