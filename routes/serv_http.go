@@ -36,11 +36,11 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	rec := &responseRecorer{ResponseWriter: w, status: http.StatusOK}
 
-	// if r.AutoCorelation {
-	// 	r.Use(mwAutoCorelation())
-	// 	defer goruntime.ClearCorelationID()
-	// 	defer logger.DeferDeleteRuntimeValue()
-	// }
+	if r.AutoCorelation {
+		r.Use(mwAutoCorelation())
+		defer goruntime.ClearCorelationID()
+		defer logger.DeferDeleteRuntimeValue()
+	}
 	defer func() {
 		// panic recovered
 		if r.RecoverOnPanic {
