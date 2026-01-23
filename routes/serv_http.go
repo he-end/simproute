@@ -44,20 +44,18 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func() {
 		// panic recovered
 		if r.RecoverOnPanic {
-			defer func() {
-				if recvr := recover(); recvr != nil {
-					fields := []zap.Field{zap.Any("error", recvr), zap.String("method", req.Method), zap.String("path", req.URL.Path)}
-					if r.AutoCorelation {
-						rID := goruntime.GetCorelationID()
-						fields = append(fields, zap.String("request_id", rID.String()))
-					}
-					logger.Error("panic recovered",
-						fields...,
-					)
-					// Use response handler to send a safe error response
-					response.NewWithGlobalLogger().Error(rec, "Internal server error", response.ErrCodeInternalError, "An unexpected error occurred", http.StatusInternalServerError)
+			if recvr := recover(); recvr != nil {
+				fields := []zap.Field{zap.Any("error", recvr), zap.String("method", req.Method), zap.String("path", req.URL.Path)}
+				if r.AutoCorelation {
+					rID := goruntime.GetCorelationID()
+					fields = append(fields, zap.String("request_id", rID.String()))
 				}
-			}()
+				logger.Error("panic recovered",
+					fields...,
+				)
+				// Use response handler to send a safe error response
+				response.NewWithGlobalLogger().Error(rec, "Internal server error", response.ErrCodeInternalError, "An unexpected error occurred", http.StatusInternalServerError)
+			}
 			if rec.status == 0 {
 				rec.status = http.StatusOK
 			}
