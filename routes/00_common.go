@@ -180,7 +180,7 @@ func (r *Router) Handle(method []string, path string, handler HandlerFunc) {
 
 }
 
-func (r *Router) Get(path string, handler HandlerFunc) {
+func (r *Router) GET(path string, handler HandlerFunc) {
 	r.Handle([]string{"GET"}, path, handler)
 }
 
