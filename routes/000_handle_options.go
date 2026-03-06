@@ -9,31 +9,26 @@ func (r *Router) handleOptions(w http.ResponseWriter, req *http.Request) bool {
 	path := req.URL.Path
 	var methods []string
 
-	// Cek static route
+	// Cek static route (O(1))
 	if m, ok := r.Routes[path]; ok {
 		for method := range m {
 			methods = append(methods, method)
 		}
 	}
 
-	// Cek dynamic route juga
+	// Cek dynamic route (O(N) traversal)
 	if len(methods) == 0 {
-		for _, dr := range r.DynamicRoutes {
-			if dr.pattern.regex.MatchString(path) {
-				for method := range dr.method {
-					methods = append(methods, method)
-				}
-				break
+		handlers, _, found := r.tree.search(path)
+		if found && len(handlers) > 0 {
+			for method := range handlers {
+				methods = append(methods, method)
 			}
 		}
 	}
 
-	// Kalau gak ada route terdaftar, lewatin (biar 404 normal)
 	if len(methods) == 0 {
 		return false
 	}
-
-	// Tambahkan OPTIONS ke daftar method
 	methods = append(methods, http.MethodOptions)
 
 	// Set header CORS
