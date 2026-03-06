@@ -11,12 +11,8 @@ func (r *Router) Group(prefix string, fn func(gr *Router)) {
 	}
 
 	group := &Router{
-		Routes: make(map[string]map[string]http.Handler),
-		DynamicRoutes: make([]struct {
-			pattern routePattern
-			method  map[string]http.Handler
-		}, 0, 4),
-		Mws:            nil,
+		Routes:         make(map[string]map[string]http.Handler),
+		tree:           r.tree,
 		Prefix:         joinPrefix(r.Prefix, prefix),
 		AutoCorelation: r.AutoCorelation,
 		RecoverOnPanic: r.RecoverOnPanic,
@@ -38,7 +34,6 @@ func (r *Router) Group(prefix string, fn func(gr *Router)) {
 			r.Routes[p][method] = h
 		}
 	}
-	r.DynamicRoutes = append(r.DynamicRoutes, group.DynamicRoutes...)
 }
 
 func joinPrefix(a, b string) string {
