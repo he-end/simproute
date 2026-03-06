@@ -37,7 +37,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	rec := &responseRecorer{ResponseWriter: w, status: http.StatusOK}
 
 	if r.AutoCorelation {
-		r.Use(mwAutoCorelation())
+		idCorelate := goruntime.GetCorelationID()
+		w.Header().Set("X-Set-Corelation-ID", idCorelate.String())
+		logger.NewLoggerOnRuntime(logger.RegisterRuntime{Key: "request_id", Value: idCorelate.String()})
+		
 		defer goruntime.ClearCorelationID()
 		defer logger.DeferDeleteRuntimeValue()
 	}
@@ -89,72 +92,35 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// r.MU.RLock()
-	// // snapshot middleware slice for this request
-	// mws := append([]func(http.Handler) http.Handler(nil), r.Mws...)
-	// // snapshot routes for this request
-	// routes := make(map[string]map[string]http.Handler)
-	// for p, methods := range r.Routes {
-	// 	routes[p] = methods
-	// }
-	// // snapshot dynamic routes for this request
-	// dynamicRoutes := make([]struct {
-	// 	pattern routePattern
-	// 	method  map[string]http.Handler
-	// }, len(r.DynamicRoutes))
-
-	// copy(dynamicRoutes, r.DynamicRoutes)
-	r.MU.RLock()
-
+	// Remove old snapshot middleware comments since they are not used anymore.
 	var handler http.Handler
 	var routeParams routeutil.RouteParams
 
-	// First, try exact match (static routes)
-	if methodForPath, exist := r.Routes[req.URL.Path]; exist {
-		handler = methodForPath[req.Method]
-	}
-	// else {
-	// 	// 405 Method Not Allowed
-	// 	response.NewWithGlobalLogger().Fail(rec, "Method Not Allowed", "METHOD_NOT_ALLOWED", "The method is not allowed for the requested URL")
-	// 	return
-	// }
-
-	if handler == nil {
-		// Try dynamic route matching
-		found := false
-		for _, dr := range r.DynamicRoutes {
-			if matches := dr.pattern.regex.FindStringSubmatch(path); matches != nil {
-				// Extract parameters
-				if methodHandler, exists := dr.method[method]; exists {
-					routeParams = make(routeutil.RouteParams)
-					for i, paramName := range dr.pattern.paramNames {
-						if i+1 < len(matches) {
-							routeParams[paramName] = matches[i+1]
-						}
-					}
-
-					// Check if method is allowed for this pattern
-					handler = methodHandler
-					found = true
-					break
-				} else {
-					r.MU.RUnlock()
-					// Pattern matches but method not allowed - 405
-					response.NewWithGlobalLogger().Fail(rec, "Method Not Allowed", "METHOD_NOT_ALLOWED", "The method is not allowed for the requested URL")
-					return
-				}
-			}
+	// O(1) Static Route Match First
+	if methodForPath, exist := r.Routes[path]; exist {
+		if h, ok := methodForPath[method]; ok {
+			handler = h
+		} else {
+			response.NewWithGlobalLogger().Fail(rec, "Method Not Allowed", "METHOD_NOT_ALLOWED", "The method is not allowed for the requested URL")
+			return
 		}
-
-		if !found {
-			// 404 Not Found
-			r.MU.RUnlock()
+	} else {
+		handlers, params, found := r.tree.search(path)
+		if found {
+			if h, ok := handlers[method]; ok {
+				handler = h
+				routeParams = params
+			} else {
+				response.NewWithGlobalLogger().Fail(rec, "Method Not Allowed", "METHOD_NOT_ALLOWED", "The method is not allowed for the requested URL")
+				return
+			}
+		} else {
 			response.NewWithGlobalLogger().Error(rec, "Not Found", "NOT_FOUND", "The requested resource was not found", http.StatusNotFound)
 			return
 		}
 	}
+
 	currentMws := r.Mws
-	r.MU.RUnlock()
 
 	// Inject route parameters into request context
 	if routeParams != nil {
@@ -168,4 +134,8 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	handler.ServeHTTP(rec, req)
+}
+
+func (r *Router) RoutesTreeSearchForTest(path string) (map[string]http.Handler, routeutil.RouteParams, bool) {
+	return r.tree.search(path)
 }
