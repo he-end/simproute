@@ -2,7 +2,6 @@ package routes
 
 import (
 	"net/http"
-	"regexp"
 	"strings"
 	"sync"
 
@@ -12,21 +11,13 @@ import (
 
 type HandlerFunc http.HandlerFunc
 
-type routePattern struct {
-	pattern    string
-	regex      *regexp.Regexp
-	paramNames []string
-}
+
 
 type Router struct {
 	MU sync.RWMutex
 
 	Routes map[string]map[string]http.Handler
-
-	DynamicRoutes []struct {
-		pattern routePattern
-		method  map[string]http.Handler
-	}
+	tree   *node
 
 	// prefix for gouping
 	Prefix string
@@ -50,10 +41,9 @@ func New() *Router {
 
 	return &Router{
 		Routes: make(map[string]map[string]http.Handler),
-		DynamicRoutes: make([]struct {
-			pattern routePattern
-			method  map[string]http.Handler
-		}, 0, 4),
+		tree: &node{
+			handlers: make(map[string]http.Handler),
+		},
 
 		Mws:            make([]func(http.Handler) http.Handler, 0, 4),
 		AutoCorelation: true,
@@ -62,54 +52,6 @@ func New() *Router {
 
 }
 
-// compilePattern converts a route pattern to a regex and extracts parameter names
-// Supports both :param and {param} syntax
-// Example: "/users/:id/posts/{postId}" -> regex with paramNames ["id", "postId"]
-func compilePattern(pattern string) routePattern {
-	regexPattern := pattern
-	paramNames := make([]string, 0)
-
-	syntaxParam := `([^/]+)`
-	// colon param handle :param
-	colonRegex := regexp.MustCompile(`:([a-zA-Z_][a-zA-Z0-9]*)`)
-	colonMatch := colonRegex.FindAllStringSubmatch(pattern, -1)
-	for _, match := range colonMatch {
-		param := match[1]
-		// if param != "" {
-		// 	paramNames = append(paramNames, param)
-		// }
-		paramNames = append(paramNames, param)
-		regexPattern = strings.ReplaceAll(regexPattern, match[0], syntaxParam)
-	}
-
-	// brace param handle {param}
-	braceRegex := regexp.MustCompile(`\{([a-zA-Z][a-zA-Z0-9]*)\}`)
-	barceMatch := braceRegex.FindAllStringSubmatch(pattern, -1)
-	for _, match := range barceMatch {
-		param := match[1]
-		// if param != "" {
-		// 		paramNames = append(paramNames, param)
-		// }
-		paramNames = append(paramNames, param)
-		regexPattern = strings.ReplaceAll(regexPattern, match[0], syntaxParam)
-	}
-
-	regexPattern = regexp.QuoteMeta(regexPattern)
-	regexPattern = strings.ReplaceAll(regexPattern, `\(\[\^/\]\+\)`, syntaxParam)
-	regexPattern = "^" + regexPattern + "$"
-
-	compileRegex := regexp.MustCompile(regexPattern)
-
-	return routePattern{
-		pattern:    pattern,
-		regex:      compileRegex,
-		paramNames: paramNames,
-	}
-}
-
-func isDynamixRoute(pattern string) bool {
-	return strings.Contains(pattern, ":") || strings.Contains(pattern, "{")
-}
 func (r *Router) Handle(method []string, path string, handler HandlerFunc) {
 	// fixing path if abnormal
 	if path == "" || path[0] != '/' {
@@ -124,60 +66,32 @@ func (r *Router) Handle(method []string, path string, handler HandlerFunc) {
 			path = r.Prefix + path
 		}
 	}
-	// set MU
+
 	r.MU.Lock()
 	defer r.MU.Unlock()
 
-	if isDynamixRoute(path) {
-		// check if exists pattern
-		pattern := compilePattern(path)
-		// pattern check
-		for i, dnr := range r.DynamicRoutes {
-			if dnr.pattern.pattern == pattern.pattern {
-				for _, m := range method {
-					method := strings.ToUpper(strings.TrimSpace(m))
-					if method == "" {
-						continue
-					}
-					r.DynamicRoutes[i].method[method] = http.HandlerFunc(handler)
-				}
-				return
-			}
+	var normalizedMethods []string
+	for _, m := range method {
+		methodStr := strings.ToUpper(strings.TrimSpace(m))
+		if methodStr != "" {
+			normalizedMethods = append(normalizedMethods, methodStr)
 		}
-
-		// if code here, thats mean pattern not yet to register
-		// add pattern
-		methodMaps := make(map[string]http.Handler)
-		for _, m := range method {
-			method := strings.ToUpper(strings.TrimSpace(m))
-			if method == "" {
-				continue
-			}
-			methodMaps[method] = http.HandlerFunc(handler)
-		}
-
-		r.DynamicRoutes = append(r.DynamicRoutes, struct {
-			pattern routePattern
-			method  map[string]http.Handler
-		}{
-			pattern: pattern,
-			method:  methodMaps,
-		})
-
-	} else {
-		if r.Routes[path] == nil {
-			r.Routes[path] = map[string]http.Handler{}
-		}
-		for _, m := range method {
-			method := strings.ToUpper(strings.TrimSpace(m))
-			if method == "" {
-				continue
-			}
-			r.Routes[path][method] = http.HandlerFunc(handler)
-		}
-
 	}
 
+	if isDynamicRoute(path) {
+		r.tree.insert(path, normalizedMethods, http.HandlerFunc(handler))
+	} else {
+		if r.Routes[path] == nil {
+			r.Routes[path] = make(map[string]http.Handler)
+		}
+		for _, m := range normalizedMethods {
+			r.Routes[path][m] = http.HandlerFunc(handler)
+		}
+	}
+}
+
+func isDynamicRoute(path string) bool {
+	return strings.Contains(path, ":") || strings.Contains(path, "{") || strings.Contains(path, "*")
 }
 
 func (r *Router) GET(path string, handler HandlerFunc) {
